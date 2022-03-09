@@ -1,40 +1,14 @@
-const express=require('express');
-const { validatorUserSchema,validatorUserLoginSchema } = require('./controller/schmaValdn');
-const {createUser}=require('./controller/createUser')
-const {findUserDetails}=require('./view/userQuery')
-const {userLogin}=require('./controller/setToken')
+const express = require('express');
+const { login } = require('./controller/login')
+const { signup } = require('./controller/signup')
+const { customValdn, customAndTokenValdn} = require('./middleware/customAndTokenValdn')
 var router = express.Router();
-
-router.post('/regiserUser',validatorUserSchema,async (req,res)=>{
-    let data= req.body;
-    data= await createUser(data);
-   res.status(200).json({status:true, code: 200});
+router.post('/publicapi', customValdn, async (req, res) => {
+    console.log("Hi");
+    const token = await signup()
+    res.status(200).json({ status: true, code: 200, data: { token: token }, "message": "Public Api Success" });
 })
-router.post('/loginUser',validatorUserLoginSchema,async (req,res)=>{
-    let data = await findUserDetails(req.body);
-    console.log(data);
-    if(!data){
-        console.log("Username or Password are incorrect");
-    }
-    else{
-       let userToken = await userLogin(data)
-        console.log(userToken);
-       res.status(200).json({status:true, code: 200, data: {token:userToken}});
-    }
+router.post('/privateapi',customAndTokenValdn, async (req, res) => {
+    await login(req, res);
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-module.exports={router}
+module.exports = { router }
